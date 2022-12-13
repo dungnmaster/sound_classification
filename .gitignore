@@ -1,0 +1,5 @@
+files/
+water-sound-classifier/samples
+water-sound-classifier/classifier.log
+water-sound-classifier/Python-3.7.0
+water-sound-classifier/__pycache__
