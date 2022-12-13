@@ -35,7 +35,7 @@ class NNCLassifier():
         # self.labels = ['flush','shower','silence','sink']
         self.labels = ['flush', 'shower' ,'silence' ,'sink' ,'speech']
 
-        self.sample_duration = 3
+        self.sample_duration = 4
         self.db = DataSink()
         print('done')
 
