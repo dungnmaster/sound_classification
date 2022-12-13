@@ -12,7 +12,7 @@ chunk = 4096 # 2^12 samples for buffer
 record_secs = 600 # seconds to record
 dev_index = 10 # device index found by p.get_device_info_by_index(ii)
 wav_output_filename = 'test1.wav' # name of .wav file
-write_batch_duration = 5
+write_batch_duration = 2
 
 
 class Save(Thread):
@@ -60,20 +60,35 @@ def init():
 
 def listen(stream,audio):
     frames = []
+    counter = 0
     write_frame_size = int((samp_rate/chunk)*write_batch_duration)
     print(write_frame_size, int((samp_rate/chunk)*record_secs))
 
     # loop through stream and append audio chunks to frame array
     for ii in range(0,int((samp_rate/chunk)*record_secs)):
         # print(ii,len(frames))
+        # print(counter)
         data = stream.read(chunk, exception_on_overflow=False)
-        frames.append(data)
-        if len(frames) == write_frame_size:
-            # print("matche", len(frames))
-            copied_frames = frames.copy()
-            writer = Save(copied_frames)
-            writer.start()
-            frames.clear()
+        if counter < 2:
+            # print('write')
+            # data = stream.read(chunk, exception_on_overflow=False)
+            frames.append(data)
+            if len(frames) == write_frame_size:
+                # print("matche", len(frames))
+                copied_frames = frames.copy()
+                writer = Save(copied_frames)
+                writer.start()
+                frames.clear()
+        counter += 1
+        if counter == 4:
+            counter = 0
+
+    if len(frames) > 0:
+        copied_frames = frames.copy()
+        writer = Save(copied_frames)
+        writer.start()
+        frames.clear()
+
 
 
     # stop the stream, close it, and terminate the pyaudio instantiation
