@@ -37,6 +37,7 @@ class NNCLassifier():
 
         self.sample_duration = 4
         self.db = DataSink()
+        self.write_records = []
         print('done')
 
     def classify(self, filepath):
@@ -56,15 +57,31 @@ class NNCLassifier():
         starttime = int(starttime) if starttime.isnumeric() else 0
         endtime = starttime+self.sample_duration
 
-        write_records = []
         s_timestamp = datetime.fromtimestamp(starttime, tz=None) 
         e_timestamp = datetime.fromtimestamp(endtime, tz=None)
         duration = self.sample_duration
         label = prediction_class
         
-        write_records.append([s_timestamp, e_timestamp, label, duration])
-        logging.info(f'starttime: {s_timestamp} endtime: {e_timestamp} label: {label} duration: {duration}')
-        self.db.insert(write_records)
+        self.write_records.append([s_timestamp, e_timestamp, label, duration])
+        
+        # if len(self.write_records) == 5:
+        #     if self.write_records[0][2] == self.write_records[1][2] == self.write_records[3][2] == self.write_records[4][2] and self.write_records[0][2] != self.write_records[2][2]:
+        #         print('modifying label: '+self.write_records[2][2]+' to '+self.write_records[1][2])
+        #         self.write_records[2][2] = self.write_records[0][2]
+        #     # print('curr', self.write_records[0])
+        #     logging.info(f'starttime: {self.write_records[2][0]} endtime: {self.write_records[2][1]} label: {self.write_records[2][2]} duration: {self.write_records[2][3]}')
+        #     self.db.insert([self.write_records[0]])
+        #     self.write_records.pop(0)
+
+
+        if len(self.write_records) == 3:
+            if self.write_records[0][2] == self.write_records[2][2]  and self.write_records[0][2] != self.write_records[1][2]:
+                print('modifying label: '+self.write_records[1][2]+' to '+self.write_records[0][2])
+                self.write_records[1][2] = self.write_records[0][2]
+            # print('curr', self.write_records[0])
+            logging.info(f'starttime: {self.write_records[1][0]} endtime: {self.write_records[1][1]} label: {self.write_records[1][2]} duration: {self.write_records[1][3]}')
+            self.db.insert([self.write_records[0]])
+            self.write_records.pop(0)
 
 
 
