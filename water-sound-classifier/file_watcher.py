@@ -8,7 +8,7 @@ from threading import Thread
 # from audio_classifier import AudioClassifier
 from classify import NNCLassifier
 
-SLEEP_INTERVAL = 10
+SLEEP_INTERVAL = 3
 AUDIO_SAMPLES_DIR = 'samples'
 
 logging.basicConfig(
