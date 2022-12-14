@@ -4,12 +4,14 @@ import logging
 from datetime import datetime
 from queue import Empty, Queue
 from threading import Thread
+import subprocess
 
 # from audio_classifier import AudioClassifier
 from classify import NNCLassifier
 
 SLEEP_INTERVAL = 10
 AUDIO_SAMPLES_DIR = 'samples'
+DOWNSAMPLED_DIR = 'downsampled_samples'
 
 logging.basicConfig(
     filename='file_watcher.log',
@@ -17,6 +19,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+if not os.path.isdir(DOWNSAMPLED_DIR):
+    os.makedirs(DOWNSAMPLED_DIR)
 
 def producer(queue):
     current_hour = datetime.now().strftime('%Y%m%d%H')
@@ -24,6 +28,7 @@ def producer(queue):
 
     while True:
         search_dir = os.path.join(AUDIO_SAMPLES_DIR, current_hour)
+        downsampled_search_dir = os.path.join(DOWNSAMPLED_DIR, current_hour)
 
         if not os.path.isdir(search_dir):
             logging.info(f'No new audio samples. Sleeping for {SLEEP_INTERVAL} seconds.')
@@ -34,9 +39,21 @@ def producer(queue):
             os.path.join(search_dir, f) for f in os.listdir(search_dir) if os.path.isfile(os.path.join(search_dir, f))
         }
         new_files = files - queued_file_set
+        
+        if not os.path.isdir(downsampled_search_dir):
+            os.makedirs(downsampled_search_dir)
 
         for file in new_files:
-            queue.put(file, block=False)
+            
+            outpath = os.path.join(downsampled_search_dir, file.split('/')[-1])
+            command= "ffmpeg -i " +file+" -ar 1000 " +outpath
+            command = command.split()
+            out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            stdout, stderr = out.communicate()
+            # print(stdout, stderr)
+
+            queue.put(outpath, block=False)
+            # queue.put(file, block=False)
             queued_file_set.add(file)
 
         hour = datetime.now().strftime('%Y%m%d%H')
@@ -51,7 +68,7 @@ def producer(queue):
 
 def consumer(queue):
     # classifier = AudioClassifier('model/audio_classifier')
-    classifier = NNCLassifier('model/model_v4.h5')
+    classifier = NNCLassifier('model/model_v5.h5')
 
     while True:
         try:

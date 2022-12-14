@@ -12,7 +12,7 @@ chunk = 4096 # 2^12 samples for buffer
 record_secs = 600 # seconds to record
 dev_index = 10 # device index found by p.get_device_info_by_index(ii)
 wav_output_filename = 'test1.wav' # name of .wav file
-write_batch_duration = 2
+write_batch_duration = 5
 
 
 class Save(Thread):
@@ -80,7 +80,7 @@ def listen(stream,audio):
                 writer.start()
                 frames.clear()
         counter += 1
-        if counter == 4:
+        if counter == 1:
             counter = 0
 
     if len(frames) > 0:
